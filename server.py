@@ -3,9 +3,6 @@ import json
 import websockets
 from langchain.llms import Ollama
 from langchain.agents import initialize_agent, Tool, AgentType
-from langchain.chains import ConversationChain
-from langchain.memory import ConversationBufferMemory
-import pdb
 
 llm = Ollama(model="llama3:8b", temperature=0.7)
 
