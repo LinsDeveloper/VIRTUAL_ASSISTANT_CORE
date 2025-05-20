@@ -20,7 +20,6 @@ tools = [
     )
 ]
 
-
 agent = initialize_agent(tools, llm, agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=3)
 
 async def handle_connection(websocket, path=None):  
@@ -46,7 +45,6 @@ async def main():
     async with websockets.serve(handle_connection, "localhost", 8080, ping_interval=None):
         print("Servidor WebSocket iniciado na porta 8080")
         await asyncio.Future()
-
 
 
 if __name__ == "__main__":

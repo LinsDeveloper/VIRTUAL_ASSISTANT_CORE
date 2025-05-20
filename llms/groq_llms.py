@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def build_model(instance_type=, model_id: str, temperature: float = 0.7) -> ChatOpenAI:
+def build_model_groq(model_id: str, temperature: float = 0.7) -> ChatOpenAI:
     """
     Build the Groq model with the specified parameters.
     """

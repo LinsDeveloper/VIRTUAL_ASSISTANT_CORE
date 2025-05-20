@@ -7,7 +7,6 @@ async def send_message(prompt):
         await websocket.send(json.dumps({"prompt": prompt}))
         
         response = await websocket.recv()
-        print(f"Resposta recebida do servidor: {response}")
         
         try:
             data = json.loads(response)
