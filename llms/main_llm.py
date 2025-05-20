@@ -1,5 +1,5 @@
 import os
-from enum.llms.instace_type_llm import InstanceTypeLLM
+from enum.llms_enum.instace_type_llm import InstanceTypeLLM
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage
 from dotenv import load_dotenv
