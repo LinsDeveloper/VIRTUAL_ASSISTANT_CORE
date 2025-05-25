@@ -1,8 +1,9 @@
 import os
-from enum.llms_enum.instace_type_llm import InstanceTypeLLM
+
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage
 from dotenv import load_dotenv
+from core.enum.llm_type_enum import InstanceTypeLLM
 from llms.groq_llms import build_model_groq
 from llms.ollama import build_model_ollama
 
