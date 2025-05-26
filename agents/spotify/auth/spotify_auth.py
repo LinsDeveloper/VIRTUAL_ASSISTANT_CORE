@@ -52,7 +52,7 @@ def _refresh_token(client_id, client_secret, refresh_token, redirect_uri, token_
     response = requests.post(token_url, data=data)
     if response.status_code == 200:
         tokens = response.json()
-        # Alguns provedores não retornam o refresh_token de volta
+        
         if not tokens.get("refresh_token"):
             tokens["refresh_token"] = refresh_token
         _cache_token(tokens)

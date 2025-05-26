@@ -2,20 +2,19 @@ import asyncio
 import json
 import websockets
 
-from agents.main.main_agent import invoke_agent_main
-
+from agents.main.main_agent import AgentMain
 
 
 async def handle_connection(websocket, path=None):  
     try:
+        agent = AgentMain()
         async for message in websocket:
             data = json.loads(message)
             prompt = data.get("prompt")
             print(f"prompt que chegou no server: {prompt}")
 
             if prompt:
-                response = invoke_agent_main(prompt)
-
+                response = agent.run(prompt)
                 await websocket.send(json.dumps({"response": response}))
 
     except websockets.ConnectionClosedOK:
@@ -24,9 +23,8 @@ async def handle_connection(websocket, path=None):
         print(f"Erro: {e}")
 
 
-
 async def main():
-    async with websockets.serve(handle_connection, "localhost", 8080, ping_interval=None):
+    async with websockets.serve(handle_connection, "0.0.0.0", 8080, ping_interval=None):
         print("Servidor WebSocket iniciado na porta 8080")
         await asyncio.Future()
 
