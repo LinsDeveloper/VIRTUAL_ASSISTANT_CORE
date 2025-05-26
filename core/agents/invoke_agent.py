@@ -19,6 +19,8 @@ def invoke_agent(agent_type: AgentsCoreEnum):
     It currently does not perform any operations.
     """
     
-    agent = get_agent(agent_type)
+    agent = get_agent_type(agent_type)
+    
+    
     pass
 

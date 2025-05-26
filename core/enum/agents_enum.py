@@ -1,6 +1,6 @@
 from enum import Enum
 
-class AgentsCoreEnum(Enum):
+class AgentsCoreEnum(str, Enum):
     SPOTIFY_PLAY = "SpotifyPlay"
     SERVICE_EMAIL = "ServiceEmail"
     MEMORY_USER = "MemoryUser"

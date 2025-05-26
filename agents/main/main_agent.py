@@ -1,40 +1,40 @@
-import os
-from langchain.agents import initialize_agent, AgentType
-from agents.spotify.spotify_agent import invoke_agent_spotify
-from core.llms.invoke_model import get_model_class
-from core.enum.model_type_enum import ModelTypeEnum
-from dotenv import load_dotenv
-from langchain.schema import SystemMessage, HumanMessage
-load_dotenv()
-
-def prompt_base():
-    """
-    Base prompt for the agent.
-    """
-    return SystemMessage(
-        content="You are a helpful assistant that can play music on Spotify."
-    )
-
-def build_agent_main(agentype=AgentType.ZERO_SHOT_REACT_DESCRIPTION, max_iterations: int = 3):
-    """
-    Build the main agent with the specified model and tools.
-    """
-    
-    
-    llm = get_model_class(ModelTypeEnum.LLAMA3)
-    verbose = os.getenv("VERBOSE", "False").lower() == "true"
-    tools = [invoke_agent_spotify]
-    agent = initialize_agent(tools, llm, agent_type=agentype, verbose=verbose, max_iterations=max_iterations)
-    
-    return agent
 
 
-def invoke_agent_main(prompt):
-    """
-    Invoke the agent with the specified prompt.
-    """
-    agent = build_agent_main()
-    response = agent.run(prompt)
-    
-    return response
+from langchain.agents import initialize_agent
+from langchain_community.chat_models import ChatOllama
+from agents.main.tools.tools_spotify import AgentSpotifyTool
+from helpers.agents.format_json_output import get_result_message_output
+
+class AgentMain:
+    def __init__(self, model_name: str = "llama3:8b", temperature: float = 0.7):
+        self.spotify_tool = AgentSpotifyTool()
+
+        llm = ChatOllama(model=model_name, temperature=temperature)
+
+        system_message = """
+        Você é um agente principal que tem uma ferramentas.
+        Quando receber uma mensagem, deve usar ferramentas para processar o comando e
+        retornar a resposta exatamente como ela vier, sem alterações.
+        Sempre retorne o resultado JSON que a ferramenta retornar.
+        """
+
+        self.agent_executor = initialize_agent(
+            tools=[self.spotify_tool],
+            llm=llm,
+            agent="zero-shot-react-description",
+            verbose=True,
+            system_message=system_message,
+            max_iterations=1,
+            handle_parsing_errors=True,
+        )
+
+    def run(self, user_input: str) -> str:
+        result = self.spotify_tool.run(user_input)
+        intermediate_steps = result.get("intermediate_steps", [])
+        
+        if intermediate_steps:
+            last_tool_response = intermediate_steps[-1][1]
+            return last_tool_response
+        
+        return result.get("output", "Nenhuma resposta obtida na ação.")
 

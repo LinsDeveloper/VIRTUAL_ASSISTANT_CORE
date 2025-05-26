@@ -1,13 +1,13 @@
 import os
 import time
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 import requests
 from dotenv import load_dotenv
 from cachetools import TTLCache
 
 load_dotenv()
 
-_token_cache = TTLCache(maxsize=2, ttl=3600)
+_token_cache = TTLCache(maxsize=10, ttl=3600)
 
 def _cache_token(tokens: Dict[str, any]):
     access_token = tokens.get("access_token")
@@ -15,14 +15,17 @@ def _cache_token(tokens: Dict[str, any]):
     expires_in = tokens.get("expires_in", 0)
    
     if access_token:
+        # Armazena o token com tempo de expiração manual
         _token_cache["access_token"] = (access_token, time.time() + expires_in - 10)
-        _token_cache.ttl = expires_in
+
     if refresh_token:
         _token_cache["refresh_token"] = refresh_token
 
-def _get_cached_token() -> Optional[Dict[str, str]]:
+
+def _get_cached_token() -> Optional[Dict[str, Union[str, int]]]:
     token_tuple = _token_cache.get("access_token")
     refresh_token = _token_cache.get("refresh_token")
+    
     if token_tuple:
         access_token, expires_at = token_tuple
         if time.time() < expires_at:
@@ -31,7 +34,12 @@ def _get_cached_token() -> Optional[Dict[str, str]]:
                 "refresh_token": refresh_token,
                 "expires_in": int(expires_at - time.time()),
             }
+        else:
+            # Token expirado, remove do cache
+            _token_cache.pop("access_token", None)
+    
     return None
+
 
 def _refresh_token(client_id, client_secret, refresh_token, redirect_uri, token_url):
     data = {
@@ -44,6 +52,7 @@ def _refresh_token(client_id, client_secret, refresh_token, redirect_uri, token_
     response = requests.post(token_url, data=data)
     if response.status_code == 200:
         tokens = response.json()
+        # Alguns provedores não retornam o refresh_token de volta
         if not tokens.get("refresh_token"):
             tokens["refresh_token"] = refresh_token
         _cache_token(tokens)
@@ -55,13 +64,17 @@ def _refresh_token(client_id, client_secret, refresh_token, redirect_uri, token_
     else:
         return None
 
-def authenticate_spotify(mocked: bool = False) -> str:
+
+def authenticate_spotify(mocked: bool = True) -> str:
     client_id = os.getenv("SPOTIFY_CLIENT_ID")
     client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
     redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI")
     token_url = "https://accounts.spotify.com/api/token"
 
-    
+    access_token_mocked = os.getenv("SPOTIFY_ACCESS_TOKEN")
+    if mocked and access_token_mocked:
+        return access_token_mocked
+
     cached = _get_cached_token()
     if cached:
         return cached
@@ -75,7 +88,7 @@ def authenticate_spotify(mocked: bool = False) -> str:
 
     
     if mocked:
-        code = os.getenv("SPOTIFY_AUTH_CODE")
+        code = os.getenv("SPOTIFY_CODE")
     else:
         raise NotImplementedError("OAuth2 flow não implementado para produção.")
 

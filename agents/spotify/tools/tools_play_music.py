@@ -1,26 +1,31 @@
-from langchain.tools import StructuredTool
-from ..resources.resource_play_music import play_specific_song,  play_pause_music
+from typing import Optional
+from langchain.tools import Tool
+from agents.spotify.resources.resource_play_music import play_pause_music
 
-tools = [
-    StructuredTool.from_function(
-        name="Play Song",
-        func=play_specific_song,
-        description="Toca uma música específica no Spotify. Use quando o usuário pedir para tocar uma música."
-    ),
-    StructuredTool.from_function(
-        name="Pause Song",
-        func=play_pause_music,
-        description="Pausa a música atualmente tocando no Spotify. Use quando o usuário pedir para pausar a música."
-    ),
-    StructuredTool.from_function(
-        name="Resume Song",
-        func=play_pause_music,
-        description="Retoma a reprodução da música pausada no Spotify. Use quando o usuário pedir para continuar a música."
-    )
-]
 
-def get_tools_spotify():
-    """
-    Retorna a lista de ferramentas para o Spotify Play.
-    """
-    return tools
+def pause_song(_action: str = None) -> str:
+    response = play_pause_music("pause")
+    return response.response
+
+
+def resume_song(_action: str = None) -> str:
+    response = play_pause_music("play")
+    return response.response
+
+
+def get_spotify_tools():
+    return [
+        Tool(
+            name="pause_song",
+            func=pause_song,
+            description="Pausa a música que está tocando no Spotify"
+        ),
+        Tool(
+            name="resume_song",
+            func=resume_song,
+            description="Continua a música pausada no Spotify"
+        )
+    ]
+
+
+__all__ = ["get_spotify_tools"]

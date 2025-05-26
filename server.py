@@ -1,23 +1,10 @@
 import asyncio
 import json
 import websockets
-from langchain.llms import Ollama
-from langchain.agents import initialize_agent, Tool, AgentType
 
-llm = Ollama(model="llama3:8b", temperature=0.7)
+from agents.main.main_agent import invoke_agent_main
 
-def responder_pergunta(pergunta: str) -> str:
-    return llm(pergunta)
 
-tools = [
-    Tool(
-        name="Respondedor de Perguntas",
-        description="Responde perguntas gerais sobre o mundo.",
-        func=responder_pergunta
-    )
-]
-
-agent = initialize_agent(tools, llm, agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True, max_iterations=3)
 
 async def handle_connection(websocket, path=None):  
     try:
@@ -27,7 +14,7 @@ async def handle_connection(websocket, path=None):
             print(f"prompt que chegou no server: {prompt}")
 
             if prompt:
-                response = agent.run(prompt)
+                response = invoke_agent_main(prompt)
 
                 await websocket.send(json.dumps({"response": response}))
 
