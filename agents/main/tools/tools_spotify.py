@@ -8,9 +8,12 @@ from agents.spotify.spotify_agent import AgentSpotify
 
 
 class AgentSpotifyTool(BaseTool):
-    name: ClassVar[str] = "agent_spotify"
-    description: ClassVar[str] = "Ferramenta que executa comandos do agente Spotify e retorna a resposta em JSON."
-
+    name: str = "agent_spotify"
+    description: str = (
+        "Ferramenta que executa comandos referente a música. "
+        "Execute essa ferramenta sempre que precisar pausar, retomar ou colocar uma música específica."
+    )
+    
     _spotify_agent: AgentSpotify = PrivateAttr()
 
     def __init__(self):

@@ -3,13 +3,19 @@ from typing import Optional
 from langchain.agents import initialize_agent
 from langchain_community.chat_models import ChatOllama
 from agents.spotify.tools.tools_play_music import get_spotify_tools
+from core.enum.llm_type_enum import InstanceTypeLLM
 from helpers.agents.format_json_output import get_result_message_output
+from llms.main_llm import build_model
 from models.AgentResponseModel import ResponseModel
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class AgentSpotify:
-    def __init__(self, model_name: str = "llama3:8b", temperature: float = 0.7) -> None:
-        llm = ChatOllama(model=model_name, temperature=temperature)
+    def __init__(self) -> None:
+        llm = build_model(InstanceTypeLLM.GROQ, "llama3-70b-8192", temperature=0.7)
         tools = get_spotify_tools()
 
         system_message = """

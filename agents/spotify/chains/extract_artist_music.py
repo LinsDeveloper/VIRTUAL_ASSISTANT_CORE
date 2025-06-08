@@ -1,10 +1,15 @@
 from langchain import LLMChain, PromptTemplate
 from langchain_community.chat_models import ChatOllama
 
+from core.enum.llm_type_enum import InstanceTypeLLM
+from llms.main_llm import build_model
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 class ExtractArtistMusicChain:
-    def __init__(self, model_name="llama3:8b", temperature=0.7):
-        llm = ChatOllama(model=model_name, temperature=temperature)
+    def __init__(self):
+        llm = build_model(InstanceTypeLLM.OLLAMA, "llama3:8b", temperature=0.7)
 
         prompt = PromptTemplate(
             input_variables=["text"],
