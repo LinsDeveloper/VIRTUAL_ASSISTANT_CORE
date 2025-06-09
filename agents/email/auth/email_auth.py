@@ -16,9 +16,9 @@ redis_client = redis.Redis(
     decode_responses=True
 )
 
-def authenticate_spotify() -> str:
+def authenticate_gmail() -> str:
     accessToken = token_cache["accessToken"]
     claims = jwt.decode(accessToken, options={"verify_signature": False})
     user_id = claims.get("nameid")
-    spotify_token = redis_client.get(f"SPOTIFY-{user_id}")
-    return spotify_token
+    gmail_token = redis_client.get(f"GMAIL-{user_id}")
+    return gmail_token

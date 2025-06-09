@@ -1,28 +1,29 @@
+# agents/reminder/agent_reminder.py
+
+from agents.reminder.tools.tools_reminder import get_reminder_tools
 from pydantic import BaseModel, Field
 from typing import Optional
 from langchain.agents import initialize_agent
 from langchain_community.chat_models import ChatOllama
-from agents.spotify.tools.tools_play_music import get_spotify_tools
 from core.enum.llm_type_enum import InstanceTypeLLM
 from helpers.agents.format_json_output import get_result_message_output
 from llms.main_llm import build_model
 from models.AgentResponseModel import ResponseModel
 import os
 from dotenv import load_dotenv
-from models.AgentResponseModel import ResponseModel
 import json
 
 load_dotenv()
 
 
-class AgentSpotify:
+class AgentReminder:
     def __init__(self) -> None:
         llm = build_model(InstanceTypeLLM.GROQ, "llama3-70b-8192", temperature=0.7)
-        tools = get_spotify_tools()
+        tools = get_reminder_tools()
 
         system_message = """
-        Você é um assistente que controla músicas no Spotify.
-        Use as funções disponíveis para pausar ou tocar músicas.
+        Você é um assistente que cria lembretes.
+        Use as funções disponíveis para registrar lembretes com base no que o usuário disser.
         Não responda diretamente ao usuário — apenas chame a função correta com os argumentos apropriados.
         Responda SEMPRE em JSON no formato:
         {
@@ -34,7 +35,7 @@ class AgentSpotify:
                 "response": "<mensagem para o usuário>"
             }
         }
-        Apenas retorne o JSON, sem explicações.
+        Atenção: NÃO retorne nenhum texto extra ou resposta final, apenas o JSON acima.
         """
 
         self.agent_executor = initialize_agent(
@@ -47,8 +48,6 @@ class AgentSpotify:
             return_intermediate_steps=True,
             system_message=system_message
         )
-
-
 
     def run(self, user_input: str) -> str:
         try:
@@ -80,7 +79,7 @@ class AgentSpotify:
         except Exception as e:
             return json.dumps({
                 "thought": "Erro ao executar o comando.",
-                "action": "spotify_tool",
+                "action": "reminder_tool",
                 "action_input": user_input,
                 "output_response": {
                     "success": False,
