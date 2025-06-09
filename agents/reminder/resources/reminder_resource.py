@@ -2,11 +2,10 @@ from typing import Optional
 from agents.reminder.chains.reminder_chain import ReminderBodyBuilderChain
 from langchain.tools import Tool
 from models.AgentResponseModel import ResponseModel
-from cachetools import TTLCache
 import requests
+from helpers.cache.cache_store import token_cache
 
 
-token_cache = TTLCache(maxsize=1000, ttl=6000)
 
 
 def create_reminder_from_query(query: str) -> ResponseModel:
@@ -21,10 +20,14 @@ def create_reminder_from_query(query: str) -> ResponseModel:
             return ResponseModel(success=False, response="❌ Token de autenticação não encontrado no cache.")
 
         reminder_data = extractor_chain.run(query)
+
+        if not all(k in reminder_data for k in ("title", "message", "reminder_timer")):
+            raise ValueError("❌ O modelo não retornou os campos esperados (title, message, reminder_timer)")
+
         body = {
-            "title": reminder_data.get("title"),
-            "message": reminder_data.get("message"),
-            "reminder_timer": reminder_data.get("reminder_timer")
+            "title": reminder_data["title"],
+            "message": reminder_data["message"],
+            "reminder_timer": reminder_data["reminder_timer"]
         }
 
         headers = {
@@ -33,7 +36,7 @@ def create_reminder_from_query(query: str) -> ResponseModel:
         }
 
         response = requests.post(
-            "http://localhost:8080/api/v1/auth/integration-reminders",
+            "http://localhost:5186/api/v1/auth/integration-reminder",
             json=body,
             headers=headers
         )
@@ -43,3 +46,4 @@ def create_reminder_from_query(query: str) -> ResponseModel:
 
     except Exception as e:
         return ResponseModel(success=False, response=f"❌ Erro ao criar lembrete: {str(e)}")
+

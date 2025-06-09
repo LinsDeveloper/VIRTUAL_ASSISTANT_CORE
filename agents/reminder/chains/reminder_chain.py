@@ -1,10 +1,11 @@
 from langchain import LLMChain, PromptTemplate
 from langchain_community.chat_models import ChatOllama
-from datetime import datetime, timedelta
+from datetime import datetime
 from core.enum.llm_type_enum import InstanceTypeLLM
 from llms.main_llm import build_model
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 
 class ReminderBodyBuilderChain:
@@ -23,7 +24,7 @@ class ReminderBodyBuilderChain:
                 "- NÃO retorne nada além do formato esperado.\n\n"
                 "Exemplo:\n"
                 "Input: 'Me lembre daqui 1 minuto de tomar o remédio'\n"
-                "Output: lembrete de tomar remédio|Hora de cuidar da sua saúde! Não esqueça de tomar o remédio.|2025-06-09T20:30:00Z\n\n"
+                "Output: lembrete de tomar remédio|Hora de cuidar da sua saúde! Não esqueça de tomar o remédio.| horario\n\n"
                 "Input: {text}\n"
                 "Output:"
             )
@@ -34,27 +35,28 @@ class ReminderBodyBuilderChain:
     def run(self, text: str) -> dict:
         current_utc = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
         response = self.chain.invoke({"text": text, "current_time": current_utc})
-        print("Resposta do modelo:", response)
+        print("Resposta bruta do modelo:", response)
 
         if isinstance(response, dict):
             response_text = response.get("text") or response.get("output") or str(response)
-            print("Resposta do modelo2:", response_text)
         else:
             response_text = str(response)
 
+        print("Texto do modelo formatado:", response_text)
+
         parts = response_text.strip().split("|")
         if len(parts) != 3:
-            raise ValueError(f"Resposta inesperada do extractor: {response_text}")
+            raise ValueError(f"❌ Resposta inesperada do modelo: {response_text}")
 
         title, message, iso_datetime = map(str.strip, parts)
 
         try:
             reminder_time = datetime.fromisoformat(iso_datetime.replace("Z", "+00:00"))
         except ValueError:
-            raise ValueError(f"Formato de data inválido: {iso_datetime}")
+            raise ValueError(f"❌ Formato de data inválido: {iso_datetime}")
 
         return {
-            "Title": title,
-            "Message": message,
-            "ReminderTimer": reminder_time
+            "title": title,
+            "message": message,
+            "reminder_timer": iso_datetime  # Retorna como string ISO 8601
         }
